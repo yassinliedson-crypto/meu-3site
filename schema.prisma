@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CLIENT
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum EventType {
+  CASAMENTO
+  ANIVERSARIO
+  CONFERENCIA
+  WORKSHOP
+  EVENTO_CORPORATIVO
+  FORMATURA
+  FESTA_PRIVADA
+  OUTRO
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  phone         String?
+  password      String
+  role          Role      @default(CLIENT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bookings      Booking[]
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  date        DateTime
+  startTime   String
+  endTime     String
+  guests      Int
+  eventType   EventType
+  notes       String?
+  status      BookingStatus @default(PENDING)
+  price       Float         @default(0)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([date])
+  @@index([userId])
+}
+
+model BlockedDate {
+  id        String   @id @default(cuid())
+  date      DateTime @unique
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model SalonInfo {
+  id              String   @id @default("singleton")
+  name            String   @default("Salão de Eventos Viana")
+  description     String   @db.Text
+  capacity        Int      @default(500)
+  basePrice       Float    @default(25000)
+  address         String?
+  phone           String?
+  whatsapp        String?
+  email           String?
+  openingHours    String?
+  facebookUrl     String?
+  instagramUrl    String?
+  updatedAt       DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
